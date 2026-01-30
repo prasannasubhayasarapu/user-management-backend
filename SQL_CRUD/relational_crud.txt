@@ -1,0 +1,96 @@
+-- Step 1: Create Tables with Relationships
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    amount INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Step 2: Insert Data
+
+-- Insert 5 users
+INSERT INTO users (name, email) VALUES
+('Alice Johnson', 'alice@example.com'),
+('Bob Smith', 'bob@example.com'),
+('Charlie Brown', 'charlie@example.com'),
+('Diana Prince', 'diana@example.com'),
+('Ethan Hunt', 'ethan@example.com');
+
+-- Insert 10 orders (ensuring one user has multiple orders)
+INSERT INTO orders (user_id, amount, status) VALUES
+(1, 150, 'completed'),
+(1, 200, 'pending'),
+(2, 90, 'shipped'),
+(3, 300, 'completed'),
+(3, 75, 'cancelled'),
+(3, 120, 'pending'),
+(4, 250, 'completed'),
+(5, 80, 'shipped'),
+(1, 300, 'completed'),  -- Alice has 3 orders
+(2, 110, 'pending');    -- Bob has 2 orders
+
+-- Step 3: Read Data (Relational Reads)
+
+-- Fetch all users
+SELECT * FROM users;
+
+-- Fetch all orders
+SELECT * FROM orders;
+
+-- Fetch all orders for a specific user (e.g., user_id = 1)
+SELECT * FROM orders WHERE user_id = 1;
+
+-- Fetch users who have more than one order
+SELECT u.id, u.name, COUNT(o.id) AS order_count
+FROM users u
+JOIN orders o ON u.id = o.user_id
+GROUP BY u.id, u.name
+HAVING COUNT(o.id) > 1;
+
+-- Fetch total order amount per user
+SELECT u.id, u.name, SUM(o.amount) AS total_amount
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id
+GROUP BY u.id, u.name
+ORDER BY total_amount DESC;
+
+-- Step 4: Update Data
+
+-- Update the email of one user (e.g., user id = 2)
+UPDATE users SET email = 'bob.new@example.com' WHERE id = 2;
+
+-- Update the status of all orders for a specific user (e.g., user_id = 1)
+UPDATE orders SET status = 'fulfilled' WHERE user_id = 1;
+
+-- Update order amount for a single order (e.g., order id = 5)
+UPDATE orders SET amount = 85 WHERE id = 5;
+
+-- Step 5: Delete Data
+
+-- Delete one order using order id (e.g., order id = 10)
+DELETE FROM orders WHERE id = 10;
+
+-- Delete all orders of a specific user (e.g., user_id = 4)
+DELETE FROM orders WHERE user_id = 4;
+
+-- Attempt deleting a user with existing orders (e.g., user_id = 1)
+-- Note: Because of ON DELETE CASCADE, this will also delete their orders
+DELETE FROM users WHERE id = 1;
+
+-- Step 6: Conceptual Question
+
+-- Why should orders not be stored inside the users table?
+-- Answer: Storing orders inside the users table would violate normalization principles.
+-- It would cause data redundancy (repeating user info for each order), make updates error-prone,
+-- and prevent efficient querying of orders independently. Using separate tables with foreign keys
+-- maintains data integrity, reduces duplication, and supports scalable relational design.
