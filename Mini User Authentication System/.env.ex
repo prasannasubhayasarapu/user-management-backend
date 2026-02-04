@@ -1,0 +1,4 @@
+SUPABASE_URL=https://sjeuvnulzqvcjjuopgae.supabase.co
+SUPABASE_ANON_KEY=sb_publishable_EiP_QtCuG3Jbc4Zw-ajuhg_7FOONMbX
+PORT=3000
+BCRYPT_ROUNDS=10
